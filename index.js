@@ -18,7 +18,8 @@ module.exports = {
       sampleRate: 44100,
       maxValue: 1.0,
       minValue: -1.0,
-      width: 800
+      width: 800,
+      precision: 10
     };
 
     options = Object.assign(defaults, options || {});
@@ -59,7 +60,7 @@ module.exports = {
     ffmpeg.stdout.on('end', () => {
       const samplesLength = samples.length;
       const sampleSize = samplesLength / options.width;
-      const sampleStep = ~~(sampleSize / 10) || 1;
+      const sampleStep = options.precision;
 
       var peaks = [];
       for (var c = 0; c < options.numOfChannels; c++) {
