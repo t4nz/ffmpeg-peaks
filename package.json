@@ -1,7 +1,7 @@
 {
   "name": "ffmpeg-peaks",
-  "version": "0.1.0",
-  "description": "Use ffmpeg to extract peaks from an audio file.",
+  "version": "0.3.0",
+  "description": "Extract peaks from an audio file.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

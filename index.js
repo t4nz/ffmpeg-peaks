@@ -1,100 +1,131 @@
-const spawn = require('child_process').spawn;
+const fs       = require('fs');
+const path     = require('path');
+const os       = require('os');
+const spawn    = require('child_process').spawn;
+const GetPeaks = require('./getPeaks');
 
-module.exports = {
+class AudioPeaks {
 
-  /**
-   * Extract data peaks from an audio file using ffmpeg.
-   * @param {String} filePath Source audio file.
-   * @param {Object} options Optional parameters.
-   * @param {Function} cb Callback fn
-   */
-  getPeaks(filePath, options, cb) {
-    var oddByte;
-    var errorMsg = '';
-    var samples = [];
+	constructor(opts) {
+		this.oddByte = null;
+		this.sc = 0;
+		
+		this.opts = Object.assign({
+			numOfChannels: 2,
+			sampleRate: 44100,
+			maxValue: 1.0,
+			minValue: -1.0,
+			width: 800,
+			precision: 5
+		}, opts || {});
+	}
+	
+	/**
+	 * Extracts peaks from an audio file.
+	 * Writes a JSON file if an output path was specified.
+	 * @param {String} sourcePath          - Source audio file path.
+	 * @param {String|Function} outputPath - Output audio file path or Callback fn.
+	 * @param {Function|Undefined} cb                - Callback fn
+	 */
+	getPeaks(sourcePath, outputPath, cb) {
+		if (typeof sourcePath !== 'string') return cb(new Error(`sourcePath param is not valid`));
+		
+		if (typeof outputPath === 'function') {
+			cb = outputPath;
+			outputPath = undefined;
+		}
+		
+		fs.access(sourcePath, (err) => {
+			if (err) return cb(new Error(`File ${sourcePath} not found`));
+			
+			this.sourceFilePath = sourcePath;
+			this.extractPeaks((err, peaks) => {
+				if (err) return cb(err);
+				if (!outputPath) return cb(null, peaks);
+				
+				let jsonPeaks;
+				try {
+					jsonPeaks = JSON.stringify(peaks);
+				} catch (err) {
+					return cb(err);
+				}
+				fs.writeFile(outputPath, jsonPeaks, (err) => {
+					if (err) return cb(err);
+					cb(null, peaks);
+				});
+			});
+		});
+	}
+	
+	/**
+	 * Extracts data peaks from an audio file using ffmpeg.
+	 * @param {Function} cb Callback fn
+	 */
+	extractPeaks(cb) {
+		this.convertFile((err, rawfilepath) => {
+			if (err) return cb(err);
 
-    var defaults = {
-      numOfChannels: 2,
-      sampleRate: 44100,
-      maxValue: 1.0,
-      minValue: -1.0,
-      width: 800,
-      precision: 10
-    };
+			fs.stat(rawfilepath, (err, stats) => {
+				if (err) return cb(err);
+				
+				const totalSamples = ~~((stats.size / 2) / numOfChannels);
+				this.peaks = new GetPeaks(numOfChannels >= 2, this.opts.width, this.opts.precision, totalSamples);
+				
+				const readable = fs.createReadStream(rawfilepath);
+				readable.on('data', this.onChunkRead.bind(this));
+				readable.on('end', () => {
+					fs.unlink(rawfilepath);
+					cb(null, this.peaks.get());
+				});
+				readable.on('error', cb);
+			});
+		});
+	}
 
-    options = Object.assign(defaults, options || {});
+	onChunkRead(chunk) {
+		let i = 0;
+		let value;
+		let contentLength = chunk.length;
+		let samples = Array(this.opts.numOfChannels).fill([]);
+		
+		if (oddByte !== null) {
+			value = ((chunk.readInt8(i++, true) << 8) | oddByte) / 32768.0;
+			samples[sc].push(value);
+			sc = (sc+1) % this.opts.numOfChannels;
+		}
 
-    const normalizeSample = (sample) => {
-      if (sample < 0) return Math.max(options.minValue, sample);
-      return Math.min(options.maxValue, sample);
-    };
+		const cL = (~~(contentLength / 2)) * 2;
+		for (; i < cL; i += 2) {
+			value = chunk.readInt16LE(i, true) / 32768.0;
+			samples[sc].push(value);
+			sc = (sc+1) % this.opts.numOfChannels;
+		}
+		oddByte = (i < contentLength ? chunk.readUInt8(i, true) : null);
+		this.peaks.update(samples);
+	}
 
-    const ffmpeg = spawn('ffmpeg', [
-      '-v', 'error',
-      '-i', filePath,
-      '-f', 's16le',
-      '-ac', options.numOfChannels,
-      '-acodec', 'pcm_s16le',
-      '-ar', options.sampleRate,
-      '-y','pipe:1'
-    ]);
+	convertFile(cb) {
+		let errorMsg = '';
+		fs.mkdtemp('/tmp/ffpeaks-', (err, tmpPath) => {
+			if (err) return cb(err);
+			
+			const rawfilepath = path.join(tmpPath, 'audio.raw');
+			const ffmpeg = spawn('ffmpeg', [
+				'-v', 'error',
+				'-i', this.sourceFilePath,
+				'-f', 's16le',
+				'-ac', this.opts.numOfChannels,
+				'-acodec', 'pcm_s16le',
+				'-ar', this.opts.sampleRate,
+				'-y', rawfilepath
+			]);
+			ffmpeg.stdout.on('end', () => cb(null, rawfilepath));
+			ffmpeg.stderr.on('data', (err) => errorMsg += err.toString());
+			ffmpeg.stderr.on('end', () => {
+				if (errorMsg) cb(new Error(errorMsg));
+			});
+		});
+	}
+}
 
-    ffmpeg.stdout.on('data', (data) => {
-      var i = 0;
-      var value;
-      var contentLength = data.length;
-
-      if (oddByte !== null) {
-        value = ((data.readInt8(i++, true) << 8) | oddByte) / 32767.0;
-        samples.push(normalizeSample(value));
-      }
-
-      for (; i < contentLength; i += 2) {
-        value = data.readInt16LE(i, true) / 32767.0;
-        samples.push(normalizeSample(value));
-      }
-
-      oddByte = (i < contentLength ? data.readUInt8(i, true) : null);
-    });
-
-    ffmpeg.stdout.on('end', () => {
-      const samplesLength = samples.length;
-      const sampleSize = samplesLength / options.width;
-      const sampleStep = options.precision;
-
-      var peaks = [];
-      for (var c = 0; c < options.numOfChannels; c++) {
-        for (var i = 0; i < options.width; i++) {
-          var start = ~~(i * sampleSize);
-          var end = ~~(start + sampleSize);
-          var min = 0;
-          var max = 0;
-          for (var j = start; j < end; j += sampleStep) {
-            var value = samples[j];
-            if (value > max) {
-              max = value;
-            }
-            if (value < min) {
-              min = value;
-            }
-          }
-
-          if (c === 0 || max > peaks[2 * i]) {
-            peaks[2 * i] = max;
-          }
-          if (c === 0 || min < peaks[2 * i + 1]) {
-            peaks[2 * i + 1] = min;
-          }
-        }
-      }
-      cb(null, peaks);
-    });
-
-    ffmpeg.stderr.on('data', (data) => errorMsg += data.toString());
-
-    ffmpeg.stderr.on('end', () => {
-      if (errorMsg) cb(new Error(errorMsg));
-    });
-  }
-
-};
+module.exports = AudioPeaks;
