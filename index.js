@@ -68,8 +68,8 @@ class AudioPeaks {
 			fs.stat(rawfilepath, (err, stats) => {
 				if (err) return cb(err);
 				
-				const totalSamples = ~~((stats.size / 2) / numOfChannels);
-				this.peaks = new GetPeaks(numOfChannels >= 2, this.opts.width, this.opts.precision, totalSamples);
+				const totalSamples = ~~((stats.size / 2) / this.opts.numOfChannels);
+				this.peaks = new GetPeaks(this.opts.numOfChannels >= 2, this.opts.width, this.opts.precision, totalSamples);
 				
 				const readable = fs.createReadStream(rawfilepath);
 				readable.on('data', this.onChunkRead.bind(this));
@@ -88,19 +88,19 @@ class AudioPeaks {
 		let contentLength = chunk.length;
 		let samples = Array(this.opts.numOfChannels).fill([]);
 		
-		if (oddByte !== null) {
-			value = ((chunk.readInt8(i++, true) << 8) | oddByte) / 32768.0;
-			samples[sc].push(value);
-			sc = (sc+1) % this.opts.numOfChannels;
+		if (this.oddByte !== null) {
+			value = ((chunk.readInt8(i++, true) << 8) | this.oddByte) / 32768.0;
+			samples[this.sc].push(value);
+			this.sc = (this.sc+1) % this.opts.numOfChannels;
 		}
 
 		const cL = (~~(contentLength / 2)) * 2;
 		for (; i < cL; i += 2) {
 			value = chunk.readInt16LE(i, true) / 32768.0;
-			samples[sc].push(value);
-			sc = (sc+1) % this.opts.numOfChannels;
+			samples[this.sc].push(value);
+			this.sc = (this.sc+1) % this.opts.numOfChannels;
 		}
-		oddByte = (i < contentLength ? chunk.readUInt8(i, true) : null);
+		this.oddByte = (i < contentLength ? chunk.readUInt8(i, true) : null);
 		this.peaks.update(samples);
 	}
 
