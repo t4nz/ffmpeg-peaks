@@ -38,7 +38,8 @@ class GetPeaks {
 			let peaks = this.splitPeaks[c];
 			let chan = buffers[c];
 
-			for (let i = this.indexI[c]; i < this.length; i++) {
+			let i;
+			for (i = this.indexI[c]; i < this.length; i++) {
 				let start = Math.max(~~(i * sampleSize), this.indexJ[c]);
 				let end = ~~((i+1) * sampleSize);
 				let min = this.lastMin[c];
