@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/gfiorello/ffmpeg-peaks/issues"
   },
-  "homepage": "https://github.com/gfiorello/ffmpeg-peaks#readme"
+  "homepage": "https://github.com/gfiorello/ffmpeg-peaks#readme",
+  "dependencies": {
+    "rimraf": "^2.6.1"
+  }
 }

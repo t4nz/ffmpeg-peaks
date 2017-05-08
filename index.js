@@ -1,6 +1,7 @@
 const fs       = require('fs');
 const path     = require('path');
 const os       = require('os');
+const rimraf   = require('rimraf');
 const spawn    = require('child_process').spawn;
 const GetPeaks = require('./getPeaks');
 
@@ -74,8 +75,10 @@ class AudioPeaks {
 				const readable = fs.createReadStream(rawfilepath);
 				readable.on('data', this.onChunkRead.bind(this));
 				readable.on('end', () => {
-					fs.unlink(rawfilepath);
-					cb(null, this.peaks.get());
+					rimraf(path.dirname(rawfilepath), (err) => {
+						if (err) return cb(err);
+						cb(null, this.peaks.get());
+					});
 				});
 				readable.on('error', cb);
 			});
