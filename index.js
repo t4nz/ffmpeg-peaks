@@ -89,7 +89,9 @@ class AudioPeaks {
 		let i = 0;
 		let value;
 		let contentLength = chunk.length;
-		let samples = Array(this.opts.numOfChannels).fill([]);
+		let samples = [];
+		
+		for(let ii=0; ii<this.opts.numOfChannels; ii++) samples[ii] = [];
 		
 		if (this.oddByte !== null) {
 			value = ((chunk.readInt8(i++, true) << 8) | this.oddByte) / 32768.0;
@@ -97,8 +99,7 @@ class AudioPeaks {
 			this.sc = (this.sc+1) % this.opts.numOfChannels;
 		}
 
-		const cL = (~~(contentLength / 2)) * 2;
-		for (; i < cL; i += 2) {
+		for (; i < contentLength; i += 2) {
 			value = chunk.readInt16LE(i, true) / 32768.0;
 			samples[this.sc].push(value);
 			this.sc = (this.sc+1) % this.opts.numOfChannels;
