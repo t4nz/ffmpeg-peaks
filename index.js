@@ -16,8 +16,8 @@ class AudioPeaks {
 			sampleRate: 44100,
 			maxValue: 1.0,
 			minValue: -1.0,
-			width: 800,
-			precision: 5
+			width: 1640,
+			precision: 1
 		}, opts || {});
 	}
 	
@@ -74,24 +74,23 @@ class AudioPeaks {
 				
 				const readable = fs.createReadStream(rawfilepath);
 				readable.on('data', this.onChunkRead.bind(this));
+				readable.on('error', cb);
 				readable.on('end', () => {
 					rimraf(path.dirname(rawfilepath), (err) => {
 						if (err) return cb(err);
 						cb(null, this.peaks.get());
 					});
 				});
-				readable.on('error', cb);
 			});
 		});
 	}
 
 	onChunkRead(chunk) {
-		let i = 0;
-		let value;
-		let contentLength = chunk.length;
-		let samples = [];
+		var i = 0;
+		var value;
+		var samples = [];
 		
-		for(let ii=0; ii<this.opts.numOfChannels; ii++) samples[ii] = [];
+		for (let ii=0; ii<this.opts.numOfChannels; ii++) samples[ii] = [];
 		
 		if (this.oddByte !== null) {
 			value = ((chunk.readInt8(i++, true) << 8) | this.oddByte) / 32768.0;
@@ -99,20 +98,20 @@ class AudioPeaks {
 			this.sc = (this.sc+1) % this.opts.numOfChannels;
 		}
 
-		for (; i < contentLength; i += 2) {
+		for (; i+1 < chunk.length; i += 2) {
 			value = chunk.readInt16LE(i, true) / 32768.0;
 			samples[this.sc].push(value);
 			this.sc = (this.sc+1) % this.opts.numOfChannels;
 		}
-		this.oddByte = (i < contentLength ? chunk.readUInt8(i, true) : null);
+		this.oddByte = ( i < chunk.length ? chunk.readUInt8(i, true) : null);
 		this.peaks.update(samples);
 	}
 
 	convertFile(cb) {
-		let errorMsg = '';
 		fs.mkdtemp('/tmp/ffpeaks-', (err, tmpPath) => {
 			if (err) return cb(err);
 			
+			var errorMsg = '';
 			const rawfilepath = path.join(tmpPath, 'audio.raw');
 			const ffmpeg = spawn('ffmpeg', [
 				'-v', 'error',
