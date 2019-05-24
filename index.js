@@ -1,4 +1,5 @@
 const fs       = require('fs');
+var request = require('request');
 const path     = require('path');
 const os       = require('os');
 const rimraf   = require('rimraf');
@@ -29,6 +30,7 @@ class AudioPeaks {
 	 * @param {Function|Undefined} cb                - Callback fn
 	 */
 	getPeaks(sourcePath, outputPath, cb) {
+		var audioPeaks = this;
 		if (typeof sourcePath !== 'string') return cb(new Error(`sourcePath param is not valid`));
 		
 		if (typeof outputPath === 'function') {
@@ -36,26 +38,59 @@ class AudioPeaks {
 			outputPath = undefined;
 		}
 		
-		fs.access(sourcePath, (err) => {
-			if (err) return cb(new Error(`File ${sourcePath} not found`));
-			
-			this.sourceFilePath = sourcePath;
-			this.extractPeaks((err, peaks) => {
-				if (err) return cb(err);
-				if (!outputPath) return cb(null, peaks);
-				
-				let jsonPeaks;
-				try {
-					jsonPeaks = JSON.stringify(peaks);
-				} catch (err) {
-					return cb(err);
-				}
-				fs.writeFile(outputPath, jsonPeaks, (err) => {
+		this.checkSourcePathAccessiblility(sourcePath)
+			.then(() => {
+				audioPeaks.sourceFilePath = sourcePath;
+				audioPeaks.extractPeaks((err, peaks) => {
 					if (err) return cb(err);
-					cb(null, peaks);
+					if (!outputPath) return cb(null, peaks);
+					
+					let jsonPeaks;
+					try {
+						jsonPeaks = JSON.stringify(peaks);
+					} catch (err) {
+						return cb(err);
+					}
+					fs.writeFile(outputPath, jsonPeaks, (err) => {
+						if (err) return cb(err);
+						cb(null, peaks);
+					});
 				});
-			});
-		});
+			})
+			.catch((error) => {
+				if(error) {
+					cb(error);
+				}	
+			})
+	}
+
+	checkSourcePathAccessiblility(sourcePath) {
+		return new Promise((resolve, reject) => {
+			if(sourcePath.toLowerCase().startsWith("http://") || sourcePath.toLowerCase().startsWith("https://") || sourcePath.toLowerCase().startsWith("ftp://")) { // TODO: Probably might want to make this a regex check...
+			// TODO: Might want to make https allowed a execution parameter is it would depend on how a person has thier ffmpeg setup.
+				request(sourcePath, {method: 'HEAD'}, function (error, response, body){
+					if(error) {
+						return reject(error);
+					}
+
+					if(response.statusCode == 200) {
+						resolve();
+					} else {
+						reject(new Error(`File ${sourcePath} not found`));
+					}
+					
+				});
+			} else {
+				fs.access(sourcePath, (err) => {
+					if (err) {
+						reject(new Error(`File ${sourcePath} not found`));
+						return;
+					} 
+					resolve();
+				});
+			}
+		})
+		
 	}
 	
 	/**
