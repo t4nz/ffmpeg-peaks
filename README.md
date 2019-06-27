@@ -18,7 +18,7 @@ ffpeaks.getPeaks('/my/input/audio.ogg', '/my/output/peaks.json', (err, peaks) =>
 	console.log(peaks);
 });
 
-ffpeaks.getPeaks('/my/input/audio2.ogg', (err, peaks) => {
+ffpeaks.getPeaks('http:/my/url/audio.ogg', (err, peaks) => {
 	if (err) return console.error(err);
 	console.log(peaks);
 });
