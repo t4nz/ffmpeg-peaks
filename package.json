@@ -1,22 +1,40 @@
 {
-  "name": "peakwright-workspace",
-  "private": true,
-  "version": "1.0.0",
+  "name": "ffmpeg-peaks",
+  "version": "1.0.1",
+  "description": "Deprecated: ffmpeg-peaks has been replaced by the Peakwright packages.",
   "type": "module",
-  "workspaces": [
-    "packages/*",
-    "compat/*"
-  ],
-  "packageManager": "bun@1.3.1",
-  "scripts": {
-    "build": "bun run --cwd packages/core build && bun run --cwd packages/node build && bun run --cwd packages/web build && bun run --cwd packages/cli build",
-    "check": "biome check . && bun run build",
-    "format": "biome check --write .",
-    "test": "bun run build && bun test"
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
   },
-  "devDependencies": {
-    "@biomejs/biome": "^2.2.2",
-    "@types/node": "^22.18.0",
-    "typescript": "^5.9.2"
+  "bin": {
+    "ffmpeg-peaks": "cli.js"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "cli.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@peakwright/cli": "^1.0.1",
+    "@peakwright/node": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t4nz/ffmpeg-peaks.git"
+  },
+  "homepage": "https://github.com/peakwright/peakwright/blob/master/docs/migration.md",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
