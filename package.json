@@ -1,29 +1,71 @@
 {
-  "name": "ffmpeg-peaks",
-  "version": "0.3.3",
-  "description": "Extract peaks from an audio file.",
-  "main": "index.js",
+  "name": "peakwright",
+  "version": "1.0.0",
+  "description": "Peakwright: a TypeScript library and CLI to generate waveform peak data from audio with FFmpeg.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": "./dist/cli.js"
+  },
+  "bin": {
+    "peakwright": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "assets",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "bun@1.3.1",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "check": "biome check . && tsc --noEmit",
+    "format": "biome check --write .",
+    "prepack": "bun run build",
+    "test": "bun run build && bun test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gfiorello/ffmpeg-peaks.git"
+    "url": "git+https://github.com/t4nz/ffmpeg-peaks.git"
   },
   "keywords": [
-    "waveform",
     "audio",
-    "peaks"
+    "audio-peaks",
+    "audio-waveform",
+    "bun",
+    "cli",
+    "ffmpeg",
+    "nodejs",
+    "peaks",
+    "typescript",
+    "waveform",
+    "waveform-data",
+    "waveform-generator",
+    "wav"
   ],
   "author": "Gaetano Fiorello",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/gfiorello/ffmpeg-peaks/issues"
+    "url": "https://github.com/t4nz/ffmpeg-peaks/issues"
   },
-  "homepage": "https://github.com/gfiorello/ffmpeg-peaks#readme",
-  "dependencies": {
-    "request": "^2.88.0",
-    "rimraf": "^2.6.1"
-  },
-  "devDependencies": {}
+  "homepage": "https://github.com/t4nz/ffmpeg-peaks#readme",
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.2",
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.2"
+  }
 }

@@ -1,0 +1,39 @@
+{
+  "name": "ffmpeg-peaks",
+  "version": "1.0.0",
+  "description": "Compatibility package for Peakwright, formerly ffmpeg-peaks.",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "bin": {
+    "ffmpeg-peaks": "cli.js"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "cli.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "peakwright": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t4nz/ffmpeg-peaks.git",
+    "directory": "compat/ffmpeg-peaks"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
