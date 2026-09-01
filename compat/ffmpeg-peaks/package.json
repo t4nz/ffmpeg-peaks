@@ -1,6 +1,6 @@
 {
   "name": "ffmpeg-peaks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Deprecated: ffmpeg-peaks has been replaced by the Peakwright packages.",
   "type": "module",
   "main": "index.js",
@@ -24,7 +24,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@peakwright/cli": "^1.0.0",
+    "@peakwright/cli": "^1.0.1",
     "@peakwright/node": "^1.0.0"
   },
   "repository": {

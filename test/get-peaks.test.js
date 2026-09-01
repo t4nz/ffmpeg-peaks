@@ -203,7 +203,7 @@ test("provides stable CLI help, version, and validation errors", async () => {
     "packages/cli/dist/cli.js",
     "--version",
   ]);
-  assert.equal(version.stdout.trim(), "1.0.0");
+  assert.equal(version.stdout.trim(), "1.0.1");
   await assert.rejects(
     exec(process.execPath, ["packages/cli/dist/cli.js", "--unknown"]),
     /Unknown option/,

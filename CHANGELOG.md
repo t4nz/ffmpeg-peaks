@@ -4,6 +4,12 @@ All notable changes are documented here. This project follows [Semantic Versioni
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-01
+
+### Fixed
+
+- Export the CLI entrypoint so the deprecated `ffmpeg-peaks` command can delegate correctly.
+
 ## [1.0.0] - 2026-09-01
 
 ### Added
@@ -32,5 +38,6 @@ All notable changes are documented here. This project follows [Semantic Versioni
 
 - Deprecated `request` and `rimraf` runtime dependencies.
 
-[Unreleased]: https://github.com/t4nz/ffmpeg-peaks/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/t4nz/ffmpeg-peaks/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/t4nz/ffmpeg-peaks/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/t4nz/ffmpeg-peaks/compare/v0.3.3...v1.0.0

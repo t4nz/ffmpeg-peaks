@@ -1,8 +1,10 @@
 {
   "name": "@peakwright/cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Zero-dependency audio waveform CLI with optional FFmpeg fallback.",
   "type": "module",
+  "main": "dist/cli.js",
+  "exports": "./dist/cli.js",
   "bin": {
     "peakwright": "dist/cli.js"
   },
