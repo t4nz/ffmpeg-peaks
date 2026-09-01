@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { access, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PeakCollector, type Peaks } from "./get-peaks.js";
+import { PeakCollector, type Peaks } from "@peakwright/core";
 import { collectWav, readWavInfo } from "./wav.js";
 
 export type ChannelMode = "merge" | "split";
@@ -100,8 +100,19 @@ export default class AudioPeaks {
         totalFrames,
         this.options.numOfChannels,
       );
-      for await (const chunk of createReadStream(rawPath))
-        collector.update(chunk);
+      let remainder = Buffer.alloc(0);
+      for await (const chunk of createReadStream(rawPath)) {
+        const data = remainder.length
+          ? Buffer.concat([remainder, chunk])
+          : chunk;
+        const readableBytes = data.length - (data.length % 2);
+        for (let offset = 0; offset < readableBytes; offset += 2)
+          collector.add(data.readInt16LE(offset) / 32_768);
+        remainder =
+          readableBytes < data.length
+            ? data.subarray(readableBytes)
+            : Buffer.alloc(0);
+      }
 
       return this.finish(
         collector.get(),
@@ -285,4 +296,4 @@ export default class AudioPeaks {
   }
 }
 
-export type { Peaks } from "./get-peaks.js";
+export { PeakCollector, type Peaks } from "@peakwright/core";

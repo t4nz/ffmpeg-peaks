@@ -3,7 +3,7 @@ import AudioPeaks, {
   type AudioPeaksOptions,
   type GenerateOptions,
   type OutputFormat,
-} from "./index.js";
+} from "@peakwright/node";
 
 const help = `Usage: peakwright <input> [output] [options]
 

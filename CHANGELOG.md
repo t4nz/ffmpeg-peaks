@@ -10,7 +10,9 @@ All notable changes are documented here. This project follows [Semantic Versioni
 
 - TypeScript source and generated type declarations.
 - Promise-based library API while retaining callback compatibility.
-- Peakwright product name, logo, and `peakwright` command-line interface.
+- Peakwright product name, logo, and scoped `core`, `node`, `web`, and `cli` packages.
+- The `peakwright` command-line interface.
+- A deprecated `ffmpeg-peaks` compatibility package with a migration notice.
 - Constant-memory PCM streaming.
 - Structured waveform metadata output.
 - Merged and split-channel modes.

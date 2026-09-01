@@ -1,6 +1,6 @@
 import { createReadStream } from "node:fs";
 import { open } from "node:fs/promises";
-import type { PeakCollector } from "./get-peaks.js";
+import type { PeakCollector } from "@peakwright/core";
 
 export interface WavInfo {
   bitsPerSample: number;

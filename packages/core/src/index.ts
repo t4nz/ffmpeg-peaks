@@ -2,7 +2,6 @@ export type Peaks = number[] | number[][];
 
 export class PeakCollector {
   private readonly channels: number[][];
-  private remainder: Buffer<ArrayBufferLike> = Buffer.alloc(0);
   private sampleIndex = 0;
 
   constructor(
@@ -12,25 +11,19 @@ export class PeakCollector {
     private readonly totalFrames: number,
     private readonly channelCount: number,
   ) {
+    if (
+      ![length, step, channelCount].every(
+        (value) => Number.isInteger(value) && value > 0,
+      )
+    )
+      throw new TypeError(
+        "length, step, and channelCount must be positive integers",
+      );
+    if (!Number.isInteger(totalFrames) || totalFrames < 0)
+      throw new TypeError("totalFrames must be a non-negative integer");
     this.channels = Array.from({ length: channelCount }, () =>
       Array(length * 2).fill(0),
     );
-  }
-
-  update(chunk: Buffer): void {
-    const data = this.remainder.length
-      ? Buffer.concat([this.remainder, chunk])
-      : chunk;
-    const readableBytes = data.length - (data.length % 2);
-
-    for (let offset = 0; offset < readableBytes; offset += 2) {
-      this.add(data.readInt16LE(offset) / 32_768);
-    }
-
-    this.remainder =
-      readableBytes < data.length
-        ? data.subarray(readableBytes)
-        : Buffer.alloc(0);
   }
 
   add(value: number): void {
@@ -38,7 +31,6 @@ export class PeakCollector {
     const channel = this.sampleIndex % this.channelCount;
     this.sampleIndex++;
     if (frame % this.step !== 0 || this.totalFrames === 0) return;
-
     const range = Math.min(
       this.length - 1,
       Math.floor((frame * this.length) / this.totalFrames),
@@ -50,7 +42,6 @@ export class PeakCollector {
 
   get(): Peaks {
     if (this.splitChannels) return this.channels;
-
     const merged = Array(this.length * 2).fill(0);
     for (const peaks of this.channels) {
       for (let range = 0; range < this.length; range++) {

@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-import "peakwright/cli";
+import "@peakwright/cli";

@@ -6,22 +6,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
-import { PeakCollector } from "../dist/get-peaks.js";
-import AudioPeaks from "../dist/index.js";
+import { PeakCollector } from "../packages/core/dist/index.js";
+import AudioPeaks from "../packages/node/dist/index.js";
+import WebPeakwright from "../packages/web/dist/index.js";
 
 const exec = promisify(execFile);
 
-test("collects interleaved PCM across odd chunk boundaries", () => {
-  const pcm = Buffer.alloc(16);
-  [1000, -2000, 3000, -4000, 5000, -6000, 7000, -8000].forEach(
-    (value, index) => {
-      pcm.writeInt16LE(value, index * 2);
-    },
-  );
+test("collects interleaved PCM in the portable core", () => {
   const collector = new PeakCollector(false, 2, 1, 4, 2);
-  collector.update(pcm.subarray(0, 3));
-  collector.update(pcm.subarray(3, 11));
-  collector.update(pcm.subarray(11));
+  for (const value of [1000, -2000, 3000, -4000, 5000, -6000, 7000, -8000])
+    collector.add(value / 32768);
 
   assert.deepEqual(collector.get(), [
     3000 / 32768,
@@ -29,6 +23,25 @@ test("collects interleaved PCM across odd chunk boundaries", () => {
     7000 / 32768,
     -8000 / 32768,
   ]);
+});
+
+test("decodes WAV data through the browser package", async () => {
+  for (const [format, bits] of [
+    [1, 8],
+    [1, 16],
+    [1, 24],
+    [1, 32],
+    [3, 32],
+    [3, 64],
+  ]) {
+    const wav = createMinimalWav(format, bits);
+    const waveform = await new WebPeakwright({ width: 2 }).generate(
+      wav.buffer.slice(wav.byteOffset, wav.byteOffset + wav.byteLength),
+    );
+    assert.equal(waveform.data.length, 4);
+    assert.ok(Math.abs(waveform.data[0] - 0.25) < 0.01);
+    assert.ok(Math.abs(waveform.data[1] + 0.5) < 0.01);
+  }
 });
 
 test("decodes every documented native WAV sample encoding", async () => {
@@ -181,12 +194,18 @@ test("falls back to FFmpeg for conversion, compressed audio, and URLs", async ()
 });
 
 test("provides stable CLI help, version, and validation errors", async () => {
-  const help = await exec(process.execPath, ["dist/cli.js", "--help"]);
+  const help = await exec(process.execPath, [
+    "packages/cli/dist/cli.js",
+    "--help",
+  ]);
   assert.match(help.stdout, /^Usage: peakwright/);
-  const version = await exec(process.execPath, ["dist/cli.js", "--version"]);
+  const version = await exec(process.execPath, [
+    "packages/cli/dist/cli.js",
+    "--version",
+  ]);
   assert.equal(version.stdout.trim(), "1.0.0");
   await assert.rejects(
-    exec(process.execPath, ["dist/cli.js", "--unknown"]),
+    exec(process.execPath, ["packages/cli/dist/cli.js", "--unknown"]),
     /Unknown option/,
   );
 });
@@ -288,7 +307,10 @@ function writeSample(buffer, offset, sample, format, bits) {
 
 function runCli(args, input) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ["dist/cli.js", ...args]);
+    const child = spawn(process.execPath, [
+      "packages/cli/dist/cli.js",
+      ...args,
+    ]);
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => {

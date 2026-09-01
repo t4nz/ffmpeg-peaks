@@ -6,5 +6,5 @@ export type {
   Peaks,
   PeaksCallback,
   WaveformData,
-} from "peakwright";
-export { default } from "peakwright";
+} from "@peakwright/node";
+export { default } from "@peakwright/node";

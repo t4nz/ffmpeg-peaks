@@ -5,19 +5,19 @@ The `peakwright` command generates JSON waveform data from a local audio file, U
 ## Run without installing
 
 ```sh
-bunx peakwright ./audio.ogg
+bunx @peakwright/cli ./audio.ogg
 ```
 
 JSON is written to standard output. Pass an output path to write it to a file instead:
 
 ```sh
-bunx peakwright ./audio.ogg ./peaks.json
+bunx @peakwright/cli ./audio.ogg ./peaks.json
 ```
 
 ## Global installation
 
 ```sh
-bun add --global peakwright
+bun add --global @peakwright/cli
 peakwright ./audio.ogg ./peaks.json
 ```
 

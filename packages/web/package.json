@@ -1,0 +1,45 @@
+{
+  "name": "@peakwright/web",
+  "version": "1.0.0",
+  "description": "Zero-dependency WAV waveform generation for browsers and web runtimes.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@peakwright/core": "^1.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "bun run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t4nz/ffmpeg-peaks.git",
+    "directory": "packages/web"
+  },
+  "keywords": [
+    "audio",
+    "browser",
+    "web",
+    "waveform",
+    "wav",
+    "zero-dependency"
+  ],
+  "author": "Gaetano Fiorello",
+  "license": "MIT"
+}

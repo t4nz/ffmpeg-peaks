@@ -1,0 +1,41 @@
+{
+  "name": "@peakwright/core",
+  "version": "1.0.0",
+  "description": "Zero-dependency waveform peak calculation for JavaScript runtimes.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "bun run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t4nz/ffmpeg-peaks.git",
+    "directory": "packages/core"
+  },
+  "keywords": [
+    "audio",
+    "peaks",
+    "typescript",
+    "waveform",
+    "zero-dependency"
+  ],
+  "author": "Gaetano Fiorello",
+  "license": "MIT"
+}
